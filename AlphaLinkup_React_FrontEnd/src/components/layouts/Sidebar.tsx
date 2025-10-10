@@ -4,7 +4,7 @@ import { COLORS } from "../../utils/theme/colors";
 import { STYLES } from "../../utils/typography/styles";
 import { APP_ROUTES } from "../../utils/strings/app_routes";
 
-import { FiAirplay, FiBriefcase, FiChevronDown, FiBarChart2 , FiUsers, FiCreditCard, FiGrid, FiAperture, FiStar, FiFolderPlus, FiChevronRight,  } from "react-icons/fi";
+import { FiAirplay, FiBriefcase, FiChevronDown, FiBarChart2, FiHeadphones , FiUsers, FiCreditCard, FiGrid, FiAperture, FiStar, FiFolderPlus, FiChevronRight,  } from "react-icons/fi";
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -316,6 +316,20 @@ const Sidebar: React.FC = () => {
               >
                 <FiBarChart2  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Investors
+              </Link>
+            </li>
+
+            {/* Meetings Schedules */}
+            <li className="nav-item">
+              <Link
+                to={APP_ROUTES.MEETINGS_SCHEDULES}
+                className={`nav-link ${isActive(APP_ROUTES.MEETINGS_SCHEDULES) ? "active" : ""}`}
+                style={STYLES.nav_item}
+                onMouseEnter={handleHover}
+                onMouseLeave={handleLeave}
+              >
+                <FiHeadphones size={16} style={{ marginRight: 8, marginBottom: 2 }} />
+                Meetings Schedules
               </Link>
             </li>
 

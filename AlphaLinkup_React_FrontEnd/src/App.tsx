@@ -22,6 +22,7 @@ import EventTypesList from './pages/event_types_list';
 import IndustriesTypeList from './pages/industries_type_list';
 import FundSizesList from './pages/fund_sizes_list';
 import FoldersList from './pages/folders_list';
+import MeetingsSchedulesPage from './pages/metings_schedules';
 import AdminLayout from './components/layouts/AdminLayout';
 import { APP_ROUTES } from './utils/strings/app_routes';
 import authService from './services/auth_service';
@@ -55,6 +56,7 @@ const AppRoutes: React.FC = () => {
         <Route path={APP_ROUTES.INVESTORS} element={<InvestorsList />} />
         <Route path={APP_ROUTES.SERVICE_PROVIDERS} element={<ServiceProvidersList />} />
         <Route path={APP_ROUTES.CARD_ACTIVATION_REQUESTS} element={<CardActivationRequestsList />} />
+        <Route path={APP_ROUTES.MEETINGS_SCHEDULES} element={<MeetingsSchedulesPage />} />
    
         {/* Masters */}
         <Route path={APP_ROUTES.COUNTRIES} element={<CountriesList />} />

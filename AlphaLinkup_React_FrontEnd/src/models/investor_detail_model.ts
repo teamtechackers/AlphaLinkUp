@@ -1,0 +1,65 @@
+export interface InvestorDetailModel {
+  investor_id: string;
+  name: string;
+  country_id: string;
+  country_name: string;
+  state_id: string;
+  state_name: string;
+  city_id: string;
+  city_name: string;
+  image_url: string;
+  fund_size: string;
+  linked_url: string;
+  bio: string;
+  profile: string;
+  investment_stage: string;
+  availability: string;
+  meeting_city: string;
+  countries_to_invest: string;
+  investment_industry: string;
+  language: string;
+  reference_no: string;
+  approval_status: string;
+  status: string;
+  rating: string;
+  no_of_meetings: string;
+  no_of_investments: string;
+  invests_in: string;
+  meeting_types: string;
+  meeting_places: string;
+  total_investments: string;
+  can_invest_in: string;
+}
+
+export const InvestorDetialModelLabels = {
+  INVESTOR_ID: "investor_id",
+  NAME: "name",
+  COUNTRY_ID: "country_id",
+  COUNTRY_NAME: "country_name",
+  STATE_ID: "state_id",
+  STATE_NAME: "state_name",
+  CITY_ID: "city_id",
+  CITY_NAME: "city_name",
+  IMAGE_URL: "image_url",
+  FUND_SIZE: "fund_size",
+  LINKED_URL: "linked_url",
+  BIO: "bio",
+  PROFILE: "profile",
+  INVESTMENT_STAGE: "investment_stage",
+  AVAILABILITY: "availability",
+  MEETING_CITY: "meeting_city",
+  COUNTRIES_TO_INVEST: "countries_to_invest",
+  INVESTMENT_INDUSTRY: "investment_industry",
+  LANGUAGE: "language",
+  REFERENCE_NO: "reference_no",
+  APPROVAL_STATUS: "approval_status",
+  STATUS: "status",
+  RATING: "rating",
+  NO_OF_MEETINGS: "no_of_meetings",
+  NO_OF_INVESTMENTS: "no_of_investments",
+  INVESTS_IN: "invests_in",
+  MEETING_TYPES: "meeting_types",
+  MEETING_PLACES: "meeting_places",
+  TOTAL_INVESTMENTS: "total_investments",
+  CAN_INVEST_IN: "can_invest_in",
+};

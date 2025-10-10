@@ -25,4 +25,5 @@ export const APP_ROUTES = {
   CARD_ACTIVATION_REQUESTS: "/list-card-activation-requests",
   SERVICE_PROVIDERS: "/list-service-provider",
   INVESTORS: "/list-investors",
+  MEETINGS_SCHEDULES: "/list-meetings-schedules",
 };
