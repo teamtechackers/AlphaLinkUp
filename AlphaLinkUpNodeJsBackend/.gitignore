@@ -1,7 +1,7 @@
 node_modules
 
-# Environment variables
-.env
+# Environment variables - Temporarily allowed for deployment
+#.env
 .env.local
 .env.*.local
 
@@ -19,12 +19,12 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Ignore environment and credential files
-*.env
+# Ignore environment and credential files - Temporarily allowed
+#*.env
 *.env.*
-serviceAccountKey.json
+#serviceAccountKey.json
 
-# Environment and service keys
-AlphaLinkUpNodeJsBackend/.env
+# Environment and service keys - Temporarily allowed
+#AlphaLinkUpNodeJsBackend/.env
 AlphaLinkUpNodeJsBackend/.env.example
-AlphaLinkUpNodeJsBackend/serviceAccountKey.json
+#AlphaLinkUpNodeJsBackend/serviceAccountKey.json
