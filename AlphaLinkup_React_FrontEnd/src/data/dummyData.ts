@@ -1,6 +1,54 @@
-// src/data/dummyData.ts
 import { MeetingModel } from "../models/meeting_model";
 import { InvestorDetailModel } from "../models/investor_detail_model";
+import { UserModel } from "../models/user_model";
+
+export const usersData: UserModel[] = [
+  {
+    user_id: 2001,
+    user_name: "Alice Johnson",
+    phone_number: "+1 555-234-5678",
+    email_address: "alice.johnson@example.com",
+    profile_photo: "https://randomuser.me/api/portraits/women/12.jpg",
+    address: "123 Market St, San Francisco, CA",
+    country_id: 1,
+    country_name: "USA",
+    state_id: 10,
+    state_name: "California",
+    city_id: 100,
+    city_name: "San Francisco",
+    status: "Active",
+  },
+  {
+    user_id: 2002,
+    user_name: "Bob Smith",
+    phone_number: "+44 7890 123456",
+    email_address: "bob.smith@example.com",
+    profile_photo: "https://randomuser.me/api/portraits/men/45.jpg",
+    address: "221B Baker Street, London",
+    country_id: 2,
+    country_name: "UK",
+    state_id: 11,
+    state_name: "London",
+    city_id: 101,
+    city_name: "London",
+    status: "Active",
+  },
+  {
+    user_id: 2003,
+    user_name: "Carol Lee",
+    phone_number: "+1 416-555-7890",
+    email_address: "carol.lee@example.com",
+    profile_photo: "https://randomuser.me/api/portraits/women/50.jpg",
+    address: "55 King St W, Toronto",
+    country_id: 3,
+    country_name: "Canada",
+    state_id: 12,
+    state_name: "Ontario",
+    city_id: 102,
+    city_name: "Toronto",
+    status: "Inactive",
+  },
+];
 
 export const meetingsData: MeetingModel[] = [
   {
@@ -14,7 +62,6 @@ export const meetingsData: MeetingModel[] = [
     meeting_time: "10:00 AM",
     meeting_date: "2025-10-01",
     meeting_status: "Scheduled",
-    status: "1",
   },
   {
     meeting_id: "M-1002",
@@ -27,7 +74,6 @@ export const meetingsData: MeetingModel[] = [
     meeting_time: "02:00 PM",
     meeting_date: "2025-10-03",
     meeting_status: "Completed",
-    status: "1",
   },
   {
     meeting_id: "M-1003",
@@ -40,7 +86,6 @@ export const meetingsData: MeetingModel[] = [
     meeting_time: "11:30 AM",
     meeting_date: "2025-10-05",
     meeting_status: "Cancelled",
-    status: "0",
   },
 ];
 

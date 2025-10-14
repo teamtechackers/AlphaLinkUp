@@ -23,16 +23,6 @@ const InvestorMeetingsDialog: React.FC<InvestorMeetingsDialogProps> = ({ open, o
       { field: MeetingModelLabels.MEETING_TIME, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TIME, width: 120 },
       { field: MeetingModelLabels.MEETING_DATE, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DATE, width: 140 },
       { field: MeetingModelLabels.MEETING_STATUS, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS, width: 140 },
-      {
-        field: MeetingModelLabels.STATUS,
-        headerName: MEETINGS_STRINGS.TABLE.HEADER_STATUS,
-        width: 120,
-        renderCell: (params: any) => (
-          <span style={{ color: params.value === "1" ? COLORS.green : COLORS.red, fontWeight: 500 }}>
-            {params.value === "1" ? MEETINGS_STRINGS.TABLE.STATUS_ACTIVE : MEETINGS_STRINGS.TABLE.STATUS_INACTIVE}
-          </span>
-        ),
-      },
     ],
     []
   );

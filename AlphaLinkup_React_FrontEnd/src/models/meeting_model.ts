@@ -9,7 +9,6 @@ export interface MeetingModel {
   meeting_time: string;
   meeting_date: string;
   meeting_status: string;
-  status: string;
 }
 
 export const MeetingModelLabels = {
@@ -23,5 +22,4 @@ export const MeetingModelLabels = {
   MEETING_TIME: "meeting_time",
   MEETING_DATE: "meeting_date",
   MEETING_STATUS: "meeting_status",
-  STATUS: "status",
 };

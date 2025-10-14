@@ -7,6 +7,17 @@ export const DASHBOARD_STRINGS = {
     EVENTS: "Total Events",
     SERVICE_PROVIDERS: "Total Service Providers",
     INVESTORS: "Total Investors",
+    MEETINGS_SCHEDULES: "Total Meetings Schedules",
+  },
+  TABLE_USERS: {
+    TABLE_TITLE: "Top 5 Users",
+    FULL_NAME: "Full Name",
+    MOBILE: "Mobile",
+    EMAIL: "Email",
+    ADDRESS: "Address",
+    CITY:  "City",
+    STATE: "State",
+    COUNTRY: "Country",
   },
   TABLE_JOBS: {
     TABLE_TITLE: "Top 5 Jobs",
