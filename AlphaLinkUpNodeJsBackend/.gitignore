@@ -22,9 +22,9 @@ Thumbs.db
 # Ignore environment and credential files - Temporarily allowed
 #*.env
 *.env.*
-#serviceAccountKey.json
+# serviceAccountKey.json
 
 # Environment and service keys - Temporarily allowed
 #AlphaLinkUpNodeJsBackend/.env
 AlphaLinkUpNodeJsBackend/.env.example
-#AlphaLinkUpNodeJsBackend/serviceAccountKey.json
+AlphaLinkUpNodeJsBackend/# serviceAccountKey.json
