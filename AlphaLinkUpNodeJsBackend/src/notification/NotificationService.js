@@ -1,11 +1,34 @@
 const admin = require('firebase-admin');
 const path = require('path');
 
+// Initialize Firebase Admin SDK strictly from environment variables only
 if (!admin.apps.length) {
-  const serviceAccount = require('../../serviceAccountKey.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  const hasEnvCreds = !!(
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  );
+
+  try {
+    if (!hasEnvCreds) {
+      throw new Error('Missing Firebase env vars: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
+    }
+
+    const envCert = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Support escaped newlines in env var
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+    };
+
+    admin.initializeApp({
+      credential: admin.credential.cert(envCert)
+    });
+  } catch (err) {
+    // Defer initialization failure until first use to avoid hard crash at boot
+    // Consumers will see a meaningful error when attempting to send notifications
+    console.error('Firebase Admin initialization error:', err && err.message ? err.message : err);
+  }
 }
 
 class NotificationService {
