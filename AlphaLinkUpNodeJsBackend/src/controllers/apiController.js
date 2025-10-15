@@ -2241,6 +2241,758 @@ const ApiController = {
     }
   },
 
+  // Admin Meeting Requests API - Simple working version
+  async getAdminMeetingRequests(req, res) {
+    try {
+      const { user_id, token, status_filter, page = 1, limit = 50 } = {
+        ...req.query,
+        ...req.body
+      };
+
+      console.log('getAdminMeetingRequests - Parameters:', { user_id, token, status_filter, page, limit });
+
+      if (!user_id || !token) {
+        return fail(res, 500, 'user_id and token are required');
+      }
+
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return fail(res, 500, 'Invalid user ID');
+      }
+
+      // Check if user is valid
+      const userRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!userRows.length) {
+        return fail(res, 500, 'Not A Valid User');
+      }
+
+      const user = userRows[0];
+      if (user.unique_token !== token) {
+        return fail(res, 500, 'Token Mismatch Exception');
+      }
+
+      // Simple query - get all meeting requests (like getInvestorMeets but for all users)
+      let baseQuery = `
+        SELECT 
+          uiul.*,
+          ui.name AS investor_name,
+          ui.profile AS investor_profile,
+          ui.investment_stage,
+          ui.availability,
+          ui.meeting_city,
+          ui.countries_to_invest,
+          ui.investment_industry,
+          ui.language,
+          ui.avg_rating,
+          CASE 
+            WHEN ui.image != '' THEN CONCAT('http://13.126.159.246:3000/uploads/investors/thumbs/', ui.image)
+            ELSE ''
+          END AS image,
+          countries.name AS country,
+          states.name AS state,
+          cities.name AS city,
+          COALESCE(mt.name, '') AS meeting_name,
+          COALESCE(mt.type, '') AS meeting_type,
+          COALESCE(mt.mins, '') AS mins,
+          u.full_name as requester_name
+        FROM user_investors_unlocked uiul
+        JOIN user_investor ui ON ui.investor_id = uiul.investor_id
+        LEFT JOIN meetings_type mt ON mt.id = uiul.meeting_id
+        LEFT JOIN countries ON countries.id = ui.country_id
+        LEFT JOIN states ON states.id = ui.state_id
+        LEFT JOIN cities ON cities.id = ui.city_id
+        LEFT JOIN users u ON uiul.user_id = u.user_id
+        WHERE 1=1
+      `;
+
+      const queryParams = [];
+
+      // Add status filter if provided
+      if (status_filter && status_filter !== 'all') {
+        baseQuery += ` AND uiul.request_status = ?`;
+        queryParams.push(status_filter);
+      }
+
+      // Add ordering and pagination
+      baseQuery += ` ORDER BY uiul.created_dts DESC LIMIT ? OFFSET ?`;
+      queryParams.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+
+      console.log('Admin Meeting Requests Query:', baseQuery);
+      console.log('Query Parameters:', queryParams);
+
+      const meetingRequests = await query(baseQuery, queryParams);
+
+      // Transform to admin format
+      const adminMeetingRequests = meetingRequests.map(item => ({
+        meeting_id: item.meeting_id,           // Actual meeting type ID
+        request_id: item.iu_id,                // Request/Unlock ID
+        requester_name: item.requester_name || 'Unknown User',
+        investor_id: item.investor_id,
+        investor_name: item.investor_name,
+        meeting_date: item.meeting_date,
+        meeting_time: item.meeting_time,
+        schedule_status: item.request_status,
+        meeting_location: item.meeting_location,
+        meeting_lat: item.meeting_lat,
+        meeting_lng: item.meeting_lng,
+        meeting_url: item.meeting_url,
+        meeting_name: item.meeting_name,
+        meeting_type: item.meeting_type,
+        duration: item.mins,
+        investor_image: item.image,
+        country: item.country,
+        state: item.state,
+        city: item.city
+      }));
+
+      // Get total count
+      let countQuery = `SELECT COUNT(*) as total_count FROM user_investors_unlocked WHERE 1=1`;
+      const countParams = [];
+      
+      if (status_filter && status_filter !== 'all') {
+        countQuery += ` AND request_status = ?`;
+        countParams.push(status_filter);
+      }
+
+      const countResult = await query(countQuery, countParams);
+      const totalCount = countResult[0]?.total_count || 0;
+
+      // Get status summary
+      const statusSummary = await query(`
+        SELECT request_status, COUNT(*) as count
+        FROM user_investors_unlocked 
+        WHERE 1=1
+        GROUP BY request_status
+      `);
+
+      return ok(res, {
+        meeting_requests: adminMeetingRequests,
+        pagination: {
+          current_page: parseInt(page),
+          total_pages: Math.ceil(totalCount / limit),
+          total_records: totalCount,
+          records_per_page: parseInt(limit)
+        },
+        status_summary: statusSummary
+      });
+
+    } catch (error) {
+      console.error('getAdminMeetingRequests error:', error);
+      return fail(res, 500, 'Failed to get admin meeting requests');
+    }
+  },
+
+  // Admin Get User Profile by User ID - Simple Version
+  async getAdminUserProfile(req, res) {
+    try {
+      const { user_id, token, target_user_id } = {
+        ...req.query,
+        ...req.body
+      };
+
+      console.log('getAdminUserProfile - Parameters:', { user_id, token, target_user_id });
+
+      if (!user_id || !token || !target_user_id) {
+        return fail(res, 500, 'user_id, token, and target_user_id are required');
+      }
+
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return fail(res, 500, 'Invalid admin user ID');
+      }
+
+      // Check if admin user is valid
+      const adminRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!adminRows.length) {
+        return fail(res, 500, 'Not A Valid Admin User');
+      }
+
+      const admin = adminRows[0];
+      if (admin.unique_token !== token) {
+        return fail(res, 500, 'Token Mismatch Exception');
+      }
+
+      // Get target user profile - simple query
+      const targetUserId = parseInt(target_user_id);
+      const userRows = await query(`
+        SELECT 
+          u.user_id,
+          u.full_name,
+          u.email,
+          u.mobile,
+          u.address,
+          u.city_id,
+          u.state_id,
+          u.country_id,
+          u.interests,
+          u.linkedin_url,
+          u.summary,
+          u.profile_photo,
+          u.qr_image,
+          u.profile_updated,
+          u.card_requested,
+          u.is_service_provider,
+          u.is_investor,
+          u.created_dts,
+          u.updated_dts,
+          c.name as city,
+          s.name as state,
+          co.name as country
+        FROM users u
+        LEFT JOIN cities c ON c.id = u.city_id
+        LEFT JOIN states s ON s.id = u.state_id
+        LEFT JOIN countries co ON co.id = u.country_id
+        WHERE u.user_id = ? LIMIT 1
+      `, [targetUserId]);
+
+      if (!userRows.length) {
+        return fail(res, 404, 'Target user not found');
+      }
+
+      const targetUser = userRows[0];
+
+      // Get meeting statistics
+      const meetingStats = await query(`
+        SELECT 
+          COUNT(*) as total_meetings,
+          SUM(CASE WHEN request_status = 'Pending' THEN 1 ELSE 0 END) as pending_meetings,
+          SUM(CASE WHEN request_status = 'Scheduled' THEN 1 ELSE 0 END) as scheduled_meetings,
+          SUM(CASE WHEN request_status = 'Completed' THEN 1 ELSE 0 END) as completed_meetings,
+          SUM(CASE WHEN request_status = 'Missed' THEN 1 ELSE 0 END) as missed_meetings
+        FROM user_investors_unlocked 
+        WHERE user_id = ?
+      `, [targetUserId]);
+
+      // Prepare response
+      const response = {
+        user_profile: {
+          user_id: targetUser.user_id,
+          full_name: targetUser.full_name,
+          email: targetUser.email,
+          mobile: targetUser.mobile,
+          address: targetUser.address,
+          city: targetUser.city,
+          state: targetUser.state,
+          country: targetUser.country,
+          interests: targetUser.interests,
+          linkedin_url: targetUser.linkedin_url,
+          summary: targetUser.summary,
+          profile_photo: targetUser.profile_photo ? `http://13.126.159.246:3000/uploads/profiles/${targetUser.profile_photo}` : '',
+          qr_image: targetUser.qr_image ? `http://13.126.159.246:3000/uploads/qr_codes/${targetUser.qr_image}` : '',
+          profile_updated: targetUser.profile_updated,
+          card_requested: targetUser.card_requested,
+          is_service_provider: targetUser.is_service_provider,
+          is_investor: targetUser.is_investor,
+          created_dts: targetUser.created_dts,
+          updated_dts: targetUser.updated_dts
+        },
+        meeting_statistics: meetingStats[0] || {
+          total_meetings: 0,
+          pending_meetings: 0,
+          scheduled_meetings: 0,
+          completed_meetings: 0,
+          missed_meetings: 0
+        }
+      };
+
+      return ok(res, response);
+
+    } catch (error) {
+      console.error('getAdminUserProfile error:', error);
+      return fail(res, 500, 'Failed to get user profile');
+    }
+  },
+
+  // Admin Get Investor Profile by Investor ID
+  async getAdminInvestorProfile(req, res) {
+    try {
+      const { user_id, token, investor_id } = {
+        ...req.query,
+        ...req.body
+      };
+
+      console.log('getAdminInvestorProfile - Parameters:', { user_id, token, investor_id });
+
+      if (!user_id || !token || !investor_id) {
+        return fail(res, 500, 'user_id, token, and investor_id are required');
+      }
+
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return fail(res, 500, 'Invalid admin user ID');
+      }
+
+      // Check if admin user is valid
+      const adminRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!adminRows.length) {
+        return fail(res, 500, 'Not A Valid Admin User');
+      }
+
+      const admin = adminRows[0];
+      if (admin.unique_token !== token) {
+        return fail(res, 500, 'Token Mismatch Exception');
+      }
+
+      // Get investor profile details
+      const investorDetail = await query(`
+        SELECT 
+          ui.*,
+          countries.name AS country,
+          states.name AS state,
+          cities.name AS city,
+          fs.investment_range,
+          CASE 
+            WHEN ui.image != '' THEN CONCAT('http://13.126.159.246:3000/uploads/investors/thumbs/', ui.image)
+            ELSE ''
+          END AS image
+        FROM user_investor ui
+        LEFT JOIN countries ON countries.id = ui.country_id
+        LEFT JOIN states ON states.id = ui.state_id
+        LEFT JOIN cities ON cities.id = ui.city_id
+        LEFT JOIN fund_size fs ON fs.id = ui.fund_size_id
+        WHERE ui.investor_id = ?
+      `, [investor_id]);
+
+      if (!investorDetail || investorDetail.length === 0) {
+        return fail(res, 404, 'Investor not found');
+      }
+
+      const investor = investorDetail[0];
+
+      // Get investor's user details
+      const userDetails = await query(`
+        SELECT 
+          u.user_id,
+          u.full_name,
+          u.email,
+          u.mobile,
+          u.address,
+          u.linkedin_url,
+          u.summary,
+          u.profile_photo,
+          u.created_dts
+        FROM users u
+        WHERE u.user_id = ?
+      `, [investor.user_id]);
+
+      // Get meeting statistics for this investor
+      const meetingStats = await query(`
+        SELECT 
+          COUNT(*) as total_meetings,
+          SUM(CASE WHEN request_status = 'Pending' THEN 1 ELSE 0 END) as pending_meetings,
+          SUM(CASE WHEN request_status = 'Scheduled' THEN 1 ELSE 0 END) as scheduled_meetings,
+          SUM(CASE WHEN request_status = 'Completed' THEN 1 ELSE 0 END) as completed_meetings,
+          SUM(CASE WHEN request_status = 'Missed' THEN 1 ELSE 0 END) as missed_meetings
+        FROM user_investors_unlocked 
+        WHERE investor_id = ?
+      `, [investor_id]);
+
+      // Get ratings and reviews
+      const ratingsData = await query(`
+        SELECT rating, COUNT(*) as count
+        FROM user_investors_unlocked
+        WHERE investor_id = ? AND rating > 0
+        GROUP BY rating
+      `, [investor_id]);
+
+      const ratings = {
+        '1_star': 0,
+        '2_star': 0,
+        '3_star': 0,
+        '4_star': 0,
+        '5_star': 0,
+        'total_ratings': 0,
+        'total_reviews': 0,
+        'avg_rating': investor.avg_rating || 0
+      };
+
+      if (ratingsData && ratingsData.length > 0) {
+        ratingsData.forEach(row => {
+          const rating = row.rating;
+          const count = parseInt(row.count);
+          if (rating >= 1 && rating <= 5) {
+            ratings[`${rating}_star`] = count;
+          }
+          ratings.total_ratings += count;
+        });
+      }
+
+      // Get recent reviews
+      const reviewsData = await query(`
+        SELECT 
+          u.full_name as reviewer_name,
+          uiul.review,
+          uiul.rating,
+          uiul.review_dts
+        FROM user_investors_unlocked uiul
+        JOIN users u ON uiul.user_id = u.user_id
+        WHERE uiul.investor_id = ? AND uiul.review IS NOT NULL AND uiul.review != ''
+        ORDER BY uiul.review_dts DESC
+        LIMIT 10
+      `, [investor_id]);
+
+      const reviews = [];
+      if (reviewsData && reviewsData.length > 0) {
+        ratings.total_reviews = reviewsData.length;
+        reviewsData.forEach(row => {
+          reviews.push({
+            reviewer_name: row.reviewer_name,
+            review: row.review,
+            rating: row.rating,
+            review_date: row.review_dts
+          });
+        });
+      }
+
+      // Prepare response
+      const response = {
+        investor_profile: {
+          investor_id: investor.investor_id,
+          user_id: investor.user_id,
+          profile: investor.profile,
+          investment_stage: investor.investment_stage,
+          availability: investor.availability,
+          meeting_city: investor.meeting_city,
+          countries_to_invest: investor.countries_to_invest,
+          investment_industry: investor.investment_industry,
+          language: investor.language,
+          avg_rating: investor.avg_rating,
+          image: investor.image,
+          country: investor.country,
+          state: investor.state,
+          city: investor.city,
+          investment_range: investor.investment_range,
+          status: investor.status,
+          approval_status: investor.approval_status,
+          created_dts: investor.created_dts,
+          updated_dts: investor.updated_dts
+        },
+        user_details: userDetails[0] || null,
+        meeting_statistics: meetingStats[0] || {
+          total_meetings: 0,
+          pending_meetings: 0,
+          scheduled_meetings: 0,
+          completed_meetings: 0,
+          missed_meetings: 0
+        },
+        ratings_and_reviews: {
+          ratings: ratings,
+          recent_reviews: reviews
+        }
+      };
+
+      return ok(res, response);
+
+    } catch (error) {
+      console.error('getAdminInvestorProfile error:', error);
+      return fail(res, 500, 'Failed to get investor profile');
+    }
+  },
+
+  // Admin Update Meeting Request - Time, Date, Status
+  async updateAdminMeetingRequest(req, res) {
+    try {
+      const { user_id, token, request_id, meeting_date, meeting_time, request_status, meeting_location, meeting_url } = {
+        ...req.query,
+        ...req.body
+      };
+
+      console.log('updateAdminMeetingRequest - Parameters:', { user_id, token, request_id, meeting_date, meeting_time, request_status });
+
+      if (!user_id || !token || !request_id) {
+        return fail(res, 500, 'user_id, token, and request_id are required');
+      }
+
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return fail(res, 500, 'Invalid admin user ID');
+      }
+
+      // Check if admin user is valid
+      const adminRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!adminRows.length) {
+        return fail(res, 500, 'Not A Valid Admin User');
+      }
+
+      const admin = adminRows[0];
+      if (admin.unique_token !== token) {
+        return fail(res, 500, 'Token Mismatch Exception');
+      }
+
+      // Check if meeting request exists
+      const meetingRequest = await query('SELECT * FROM user_investors_unlocked WHERE iu_id = ? LIMIT 1', [request_id]);
+      if (!meetingRequest.length) {
+        return fail(res, 404, 'Meeting request not found');
+      }
+
+      // Prepare update fields
+      const updateFields = [];
+      const updateValues = [];
+
+      if (meeting_date) {
+        updateFields.push('meeting_date = ?');
+        updateValues.push(meeting_date);
+      }
+
+      if (meeting_time) {
+        updateFields.push('meeting_time = ?');
+        updateValues.push(meeting_time);
+      }
+
+      if (request_status) {
+        updateFields.push('request_status = ?');
+        updateValues.push(request_status);
+      }
+
+      if (meeting_location) {
+        updateFields.push('meeting_location = ?');
+        updateValues.push(meeting_location);
+      }
+
+      if (meeting_url) {
+        updateFields.push('meeting_url = ?');
+        updateValues.push(meeting_url);
+      }
+
+      if (updateFields.length === 0) {
+        return fail(res, 400, 'No fields to update provided');
+      }
+
+      // Add request_id to update values
+      updateValues.push(request_id);
+
+      // Update the meeting request
+      const updateQuery = `UPDATE user_investors_unlocked SET ${updateFields.join(', ')} WHERE iu_id = ?`;
+      console.log('Update Query:', updateQuery);
+      console.log('Update Values:', updateValues);
+
+      const updateResult = await query(updateQuery, updateValues);
+
+      if (updateResult.affectedRows > 0) {
+        // Get updated meeting request details
+        const updatedRequest = await query(`
+          SELECT 
+            uiul.*,
+            ui.name AS investor_name,
+            ui.profile AS investor_profile,
+            ui.image,
+            u.full_name as requester_name,
+            countries.name AS country,
+            states.name AS state,
+            cities.name AS city,
+            COALESCE(mt.name, '') AS meeting_name,
+            COALESCE(mt.type, '') AS meeting_type,
+            COALESCE(mt.mins, '') AS mins
+          FROM user_investors_unlocked uiul
+          JOIN user_investor ui ON ui.investor_id = uiul.investor_id
+          LEFT JOIN meetings_type mt ON mt.id = uiul.meeting_id
+          LEFT JOIN countries ON countries.id = ui.country_id
+          LEFT JOIN states ON states.id = ui.state_id
+          LEFT JOIN cities ON cities.id = ui.city_id
+          LEFT JOIN users u ON uiul.user_id = u.user_id
+          WHERE uiul.iu_id = ?
+        `, [request_id]);
+
+        const updatedData = updatedRequest[0];
+
+        return ok(res, {
+          message: 'Meeting request updated successfully',
+          updated_meeting_request: {
+            request_id: updatedData.iu_id,
+            meeting_id: updatedData.meeting_id,
+            requester_name: updatedData.requester_name,
+            investor_id: updatedData.investor_id,
+            investor_name: updatedData.investor_name,
+            meeting_date: updatedData.meeting_date,
+            meeting_time: updatedData.meeting_time,
+            request_status: updatedData.request_status,
+            meeting_location: updatedData.meeting_location,
+            meeting_url: updatedData.meeting_url,
+            meeting_name: updatedData.meeting_name,
+            meeting_type: updatedData.meeting_type,
+            duration: updatedData.mins,
+            country: updatedData.country,
+            state: updatedData.state,
+            city: updatedData.city,
+            updated_at: new Date().toISOString()
+          }
+        });
+      } else {
+        return fail(res, 500, 'Failed to update meeting request');
+      }
+
+    } catch (error) {
+      console.error('updateAdminMeetingRequest error:', error);
+      return fail(res, 500, 'Failed to update meeting request');
+    }
+  },
+
+  // Admin Get Investor Meeting Requests by Investor ID
+  async getAdminInvestorMeetingRequests(req, res) {
+    try {
+      const { user_id, token, investor_id, status_filter, page = 1, limit = 50 } = {
+        ...req.query,
+        ...req.body
+      };
+
+      console.log('getAdminInvestorMeetingRequests - Parameters:', { user_id, token, investor_id, status_filter, page, limit });
+
+      if (!user_id || !token || !investor_id) {
+        return fail(res, 500, 'user_id, token, and investor_id are required');
+      }
+
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return fail(res, 500, 'Invalid admin user ID');
+      }
+
+      // Check if admin user is valid
+      const adminRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!adminRows.length) {
+        return fail(res, 500, 'Not A Valid Admin User');
+      }
+
+      const admin = adminRows[0];
+      if (admin.unique_token !== token) {
+        return fail(res, 500, 'Token Mismatch Exception');
+      }
+
+      // Get all meeting requests for this investor
+      let baseQuery = `
+        SELECT 
+          uiul.*,
+          ui.name AS investor_name,
+          ui.profile AS investor_profile,
+          ui.image,
+          u.full_name as requester_name,
+          u.email as requester_email,
+          u.mobile as requester_mobile,
+          countries.name AS country,
+          states.name AS state,
+          cities.name AS city,
+          COALESCE(mt.name, '') AS meeting_name,
+          COALESCE(mt.type, '') AS meeting_type,
+          COALESCE(mt.mins, '') AS mins,
+          CASE 
+            WHEN ui.image != '' THEN CONCAT('http://13.126.159.246:3000/uploads/investors/thumbs/', ui.image)
+            ELSE ''
+          END AS investor_image
+        FROM user_investors_unlocked uiul
+        JOIN user_investor ui ON ui.investor_id = uiul.investor_id
+        LEFT JOIN meetings_type mt ON mt.id = uiul.meeting_id
+        LEFT JOIN countries ON countries.id = ui.country_id
+        LEFT JOIN states ON states.id = ui.state_id
+        LEFT JOIN cities ON cities.id = ui.city_id
+        LEFT JOIN users u ON uiul.user_id = u.user_id
+        WHERE uiul.investor_id = ?
+      `;
+
+      const queryParams = [investor_id];
+
+      // Add status filter if provided
+      if (status_filter && status_filter !== 'all') {
+        baseQuery += ` AND uiul.request_status = ?`;
+        queryParams.push(status_filter);
+      }
+
+      // Add ordering and pagination
+      baseQuery += ` ORDER BY uiul.created_dts DESC LIMIT ? OFFSET ?`;
+      queryParams.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+
+      console.log('Investor Meeting Requests Query:', baseQuery);
+      console.log('Query Parameters:', queryParams);
+
+      const meetingRequests = await query(baseQuery, queryParams);
+
+      // Transform to admin format
+      const investorMeetingRequests = meetingRequests.map(item => ({
+        request_id: item.iu_id,
+        meeting_id: item.meeting_id,
+        requester_name: item.requester_name || 'Unknown User',
+        requester_email: item.requester_email,
+        requester_mobile: item.requester_mobile,
+        investor_id: item.investor_id,
+        investor_name: item.investor_name,
+        investor_profile: item.investor_profile,
+        investor_image: item.investor_image,
+        meeting_date: item.meeting_date,
+        meeting_time: item.meeting_time,
+        request_status: item.request_status,
+        meeting_location: item.meeting_location,
+        meeting_lat: item.meeting_lat,
+        meeting_lng: item.meeting_lng,
+        meeting_url: item.meeting_url,
+        meeting_name: item.meeting_name,
+        meeting_type: item.meeting_type,
+        duration: item.mins,
+        country: item.country,
+        state: item.state,
+        city: item.city,
+        rating: item.rating || 0,
+        review: item.review || '',
+        review_dts: item.review_dts,
+        created_dts: item.created_dts
+      }));
+
+      // Get total count
+      let countQuery = `SELECT COUNT(*) as total_count FROM user_investors_unlocked WHERE investor_id = ?`;
+      const countParams = [investor_id];
+      
+      if (status_filter && status_filter !== 'all') {
+        countQuery += ` AND request_status = ?`;
+        countParams.push(status_filter);
+      }
+
+      const countResult = await query(countQuery, countParams);
+      const totalCount = countResult[0]?.total_count || 0;
+
+      // Get status summary for this investor
+      const statusSummary = await query(`
+        SELECT request_status, COUNT(*) as count
+        FROM user_investors_unlocked 
+        WHERE investor_id = ?
+        GROUP BY request_status
+      `, [investor_id]);
+
+      // Get investor basic info
+      const investorInfo = await query(`
+        SELECT 
+          ui.investor_id,
+          ui.name AS investor_name,
+          ui.profile AS investor_profile,
+          ui.avg_rating,
+          CASE 
+            WHEN ui.image != '' THEN CONCAT('http://13.126.159.246:3000/uploads/investors/thumbs/', ui.image)
+            ELSE ''
+          END AS investor_image,
+          countries.name AS country,
+          states.name AS state,
+          cities.name AS city
+        FROM user_investor ui
+        LEFT JOIN countries ON countries.id = ui.country_id
+        LEFT JOIN states ON states.id = ui.state_id
+        LEFT JOIN cities ON cities.id = ui.city_id
+        WHERE ui.investor_id = ?
+      `, [investor_id]);
+
+      return ok(res, {
+        investor_info: investorInfo[0] || null,
+        meeting_requests: investorMeetingRequests,
+        pagination: {
+          current_page: parseInt(page),
+          total_pages: Math.ceil(totalCount / limit),
+          total_records: totalCount,
+          records_per_page: parseInt(limit)
+        },
+        status_summary: statusSummary
+      });
+
+    } catch (error) {
+      console.error('getAdminInvestorMeetingRequests error:', error);
+      return fail(res, 500, 'Failed to get investor meeting requests');
+    }
+  },
+
   async getInvestorDesk(req, res) {
     try {
       const { user_id, token, filter_type } = {

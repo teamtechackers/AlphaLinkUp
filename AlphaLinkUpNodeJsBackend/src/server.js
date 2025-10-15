@@ -57,14 +57,14 @@ const startServer = async () => {
       logger.info('Scheduled tasks started');
     }
     
-    // Start HTTP server
-    const server = app.listen(PORT, () => {
+    // Start HTTP server - bind to all interfaces for external access
+    const server = app.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 AlphaLinkup Backend Server Started Successfully!`);
       logger.info(`📍 Environment: ${NODE_ENV}`);
       logger.info(`🌐 Server running on port: ${PORT}`);
-      logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
-      logger.info(`📊 API version: http://localhost:${PORT}/version`);
-      logger.info(`📚 API documentation: http://localhost:${PORT}/api/v1`);
+      logger.info(`🔗 Health check: http://13.126.159.246:${PORT}/health`);
+      logger.info(`📊 API version: http://13.126.159.246:${PORT}/version`);
+      logger.info(`📚 API documentation: http://13.126.159.246:${PORT}/api/v1`);
       logger.info(`⏰ Started at: ${new Date().toISOString()}`);
       
       // Initialize WebSocket service

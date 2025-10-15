@@ -452,6 +452,25 @@ router.post('/Api-Add-Investor-Review-Rating', uploadFormData.none(), ApiControl
 router.get('/Api-My-Investor-Profile', ApiController.getMyInvestorProfile);
 router.post('/Api-My-Investor-Profile', uploadFormData.none(), ApiController.getMyInvestorProfile);
 router.get('/Api-My-Investor-Meets', ApiController.getInvestorMeets);
+// Admin Meeting Requests API
+router.get('/Api-Admin-Meeting-Requests', ApiController.getAdminMeetingRequests);
+router.post('/Api-Admin-Meeting-Requests', uploadFormData.none(), ApiController.getAdminMeetingRequests);
+
+// Admin User Profile API
+router.get('/Api-Admin-User-Profile', ApiController.getAdminUserProfile);
+router.post('/Api-Admin-User-Profile', uploadFormData.none(), ApiController.getAdminUserProfile);
+
+// Admin Investor Profile API
+router.get('/Api-Admin-Investor-Profile', ApiController.getAdminInvestorProfile);
+router.post('/Api-Admin-Investor-Profile', uploadFormData.none(), ApiController.getAdminInvestorProfile);
+
+// Admin Update Meeting Request API
+router.post('/Api-Admin-Update-Meeting-Request', uploadFormData.none(), ApiController.updateAdminMeetingRequest);
+
+// Admin Get Investor Meeting Requests API
+router.get('/Api-Admin-Investor-Meeting-Requests', ApiController.getAdminInvestorMeetingRequests);
+router.post('/Api-Admin-Investor-Meeting-Requests', uploadFormData.none(), ApiController.getAdminInvestorMeetingRequests);
+
 router.post('/Api-My-Investor-Meets', uploadFormData.none(), ApiController.getInvestorMeets);
 router.get('/Api-Investor-Desk', ApiController.getInvestorDesk);
 // Chat Routes
