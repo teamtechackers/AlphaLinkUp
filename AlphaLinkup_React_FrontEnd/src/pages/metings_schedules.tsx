@@ -2,43 +2,105 @@ import React, { useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import { DataGrid } from "@mui/x-data-grid";
 import { FiMonitor, FiEdit } from "react-icons/fi";
-import { UserModel } from "../models/user_model";
+import { RequestorModel } from "../models/requestor_model";
 import { MeetingModel, MeetingModelLabels } from "../models/meeting_model";
 import { InvestorDetailModel } from "../models/investor_detail_model";
 import InvestorMeetingsDialog from "../components/InvestorMeetingsDialog";
 import ImageDetailsDialog from "../components/ImageDetailsDialogProps";
 import { MEETINGS_STRINGS } from "../utils/strings/pages/meetings_strings";
 import { COLORS } from "../utils/theme/colors";
-import { meetingsData, investorsData, usersData  } from "../data/dummyData";
+import { toast } from "react-toastify";
+import { CONSTANTS } from "../utils/strings/constants";
+import meetingsSchedulesService from "../services/meetings_schedules_service";
+import { useEffect } from "react";
 
 const MeetingsSchedulesPage: React.FC = () => {
-  const [items, setItems] = useState<MeetingModel[]>(meetingsData);
+  const [items, setItems] = useState<MeetingModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [openInvestorDetails, setOpenInvestorDetails] = useState(false);
   const [openInvestorMeetings, setOpenInvestorMeetings] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorDetailModel | null>(null);
   const [selectedInvestorMeetings, setSelectedInvestorMeetings] = useState<MeetingModel[]>([]);
   const [openUserDetails, setOpenUserDetails] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
+  const [selectedUser, setSelectedUser] = useState<RequestorModel | null>(null);
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingModel | null>(null);
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [rowCount, setRowCount] = useState(0);
 
-  const handleOpenInvestorDetails = (investorId: string) => {
-    const investor = investorsData.find((i) => i.investor_id === investorId) || null;
-    setSelectedInvestor(investor);
-    setOpenInvestorDetails(true);
+  const loadMeetings = async (page = paginationModel.page, pageSize = paginationModel.pageSize) => {
+    setLoading(true);
+    try {
+      const response = await meetingsSchedulesService.getMeetingsList(page + 1, pageSize);
+      
+      if (response.status && response.data) {
+        const meetings: MeetingModel[] = response.data.meeting_requests || [];
+        console.log("Parsed meetings:", meetings); 
+        setItems(meetings);
+        setRowCount(response.data.pagination?.total_records || 0);
+      } else {
+        toast.error(response.message || CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+        setItems([]);
+      }
+    } catch (err) {
+      console.error("Error loading meetings:", err);
+      toast.error(CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOpenInvestorMeetings = (investorId: string) => {
-    const meetings = items.filter((m) => m.investor_id === investorId);
-    setSelectedInvestorMeetings(meetings);
-    setOpenInvestorMeetings(true);
+  useEffect(() => {
+    loadMeetings(paginationModel.page, paginationModel.pageSize);
+  }, [paginationModel]);
+
+  const handleOpenInvestorDetails = async (investorId: string) => {
+    try {
+      const response = await meetingsSchedulesService.getInvestorDetails(investorId);
+      
+      if (response.status && response.data) {
+        setSelectedInvestor(response.data);
+        setOpenInvestorDetails(true);
+      } else {
+        toast.error(response.message || CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+      }
+    } catch (err) {
+      console.error("Error loading investor details:", err);
+      toast.error(CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+    }
   };
 
-  const handleOpenUserDetails = (userId: string) => {
-    const cleanId = userId.replace("U-", "");
-    const user = usersData.find((u) => u.user_id.toString() === cleanId) || null;
-    setSelectedUser(user);
-    setOpenUserDetails(true);
+  const handleOpenInvestorMeetings = async (investorId: string) => {
+    try {
+      const response = await meetingsSchedulesService.getInvestorMeetings(investorId);
+      
+      if (response.status && response.data) {
+        const meetings: MeetingModel[] = response.data.meeting_requests || [];
+        setSelectedInvestorMeetings(meetings);
+        setOpenInvestorMeetings(true);
+      } else {
+        toast.error(response.message || CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+      }
+    } catch (err) {
+      console.error("Error loading investor meetings:", err);
+      toast.error(CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+    }
+  };
+
+  const handleOpenUserDetails = async (userId: string) => {
+    try {
+      const response = await meetingsSchedulesService.getRequestorDetails(userId);
+      console.log("User details:", response); 
+      if (response.status && response.data) {
+        setSelectedUser(response.data);
+        setOpenUserDetails(true);
+      } else {
+        toast.error(response.message || CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+      }
+    } catch (err) {
+      console.error("Error loading user details:", err);
+      toast.error(CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+    }
   };
 
   const onEdit = (item: MeetingModel) => {
@@ -55,51 +117,105 @@ const MeetingsSchedulesPage: React.FC = () => {
     setSelectedMeeting((prev) => (prev ? { ...prev, [name]: value } : prev));
   };
 
-  const formatTimeForInput = (timeString: string) => {
-    if (!timeString) return "";
-    const [time, modifier] = timeString.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMeeting) return;
 
-    if (modifier === "PM" && hours < 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
+    try {
+      const payload = {
+        request_id: selectedMeeting.request_id,
+        meeting_date: selectedMeeting.meeting_date,
+        meeting_time: selectedMeeting.meeting_time,
+        request_status: selectedMeeting.schedule_status,
+      };
 
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+      const response = await meetingsSchedulesService.updateMeetingRequest(payload);
+      
+      if (response.status) {
+        toast.success(response.data.message || "Meeting updated successfully");
+        setSelectedMeeting(null);
+        await loadMeetings(paginationModel.page, paginationModel.pageSize);
+      } else {
+        toast.error(response.message || CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+      }
+    } catch (err) {
+      console.error("Error updating meeting:", err);
+      toast.error(CONSTANTS.MESSAGES.SOMETHING_WENT_WRONG);
+    }
+  };
+
+  const to12Hour = (time: string): string => {
+    if (!time) return "";
+    const trimmed = time.trim();
+
+    // Already AM/PM
+    const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (ampmMatch) {
+      const hours = Math.max(1, Math.min(12, parseInt(ampmMatch[1], 10)));
+      const minutes = ampmMatch[2];
+      const ampm = ampmMatch[3].toUpperCase();
+      return `${hours}:${minutes} ${ampm}`;
+    }
+
+    // 24h HH:MM -> AM/PM
+    const hhmmMatch = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+    if (hhmmMatch) {
+      let hours24 = parseInt(hhmmMatch[1], 10);
+      const minutes = hhmmMatch[2];
+      const ampm = hours24 >= 12 ? "PM" : "AM";
+      hours24 = hours24 % 12;
+      const hours12 = hours24 === 0 ? 12 : hours24;
+      return `${hours12}:${minutes} ${ampm}`;
+    }
+
+    // Fallback: return as-is
+    return trimmed;
+  };
+
+  const normalizeToAmPm = (input: string): string => to12Hour(input);
+
+    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedMeeting) return;
+    const ampm = normalizeToAmPm(e.target.value);
+    setSelectedMeeting(prev => (prev ? { ...prev, meeting_time: ampm } : prev));
   };
 
   const columns = useMemo(
     () => [
       { field: MeetingModelLabels.MEETING_ID, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_ID, width: 120 },
       {
-        field: MeetingModelLabels.REQUESTOR_NAME,
+        field: MeetingModelLabels.REQUESTER_NAME,
         headerName: MEETINGS_STRINGS.TABLE.HEADER_REQUESTOR_NAME,
+        width: 180,
+        renderCell: (params: any) => {
+          return (
+            <span
+              style={{ color: "blue", cursor: "pointer" }}
+              onClick={() => handleOpenUserDetails(params.row.request_id)}
+            >
+              {params.row.requester_name || "No Name"}
+            </span>
+          );
+        },
+      },
+      { 
+        field: MeetingModelLabels.INVESTOR_NAME,
+        headerName: MEETINGS_STRINGS.TABLE.HEADER_INVESTOR_NAME,
         width: 180,
         renderCell: (params: any) => (
           <span
             style={{ color: "blue", cursor: "pointer" }}
-            onClick={() => handleOpenUserDetails(params.row.requester_id)}
+            onClick={() => handleOpenInvestorDetails(params.row.investor_id)}
           >
-            {params.row.requestor_name}
+            {params.row.investor_name}
           </span>
         ),
       },
-      { 
-        field: MeetingModelLabels.INVESTOR_NAME,
-         headerName: MEETINGS_STRINGS.TABLE.HEADER_INVESTOR_NAME,
-          width: 180,
-          renderCell: (params: any) => (
-            <span
-              style={{ color: "blue", cursor: "pointer" }}
-              onClick={() => handleOpenInvestorDetails(params.row.investor_id)}
-            >
-              {params.row.investor_name}
-            </span>
-          ),
-      },
-      { field: MeetingModelLabels.MEETING_DURATION, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DURATION, width: 120 },
+      { field: MeetingModelLabels.DURATION, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DURATION, width: 120 },
       { field: MeetingModelLabels.MEETING_TYPE, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TYPE, width: 120 },
-      { field: MeetingModelLabels.MEETING_TIME, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TIME, width: 120 },
+      { field: MeetingModelLabels.MEETING_TIME, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TIME, width: 120, renderCell: (params: any) => to12Hour(params.value), },
       { field: MeetingModelLabels.MEETING_DATE, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DATE, width: 140 },
-      { field: MeetingModelLabels.MEETING_STATUS, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS, width: 140 },
+      { field: MeetingModelLabels.SCHEDULE_STATUS, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS, width: 140 },
       {
         field: "actions",
         headerName: MEETINGS_STRINGS.TABLE.HEADER_ACTIONS,
@@ -132,7 +248,6 @@ const MeetingsSchedulesPage: React.FC = () => {
       <h4 className="my-4">{MEETINGS_STRINGS.TITLE}</h4>
 
       <div className="row">
-
         <div className="col-lg-8">
           <Box sx={{ height: 800, width: "100%" }}>
             <DataGrid
@@ -140,6 +255,11 @@ const MeetingsSchedulesPage: React.FC = () => {
               columns={columns}
               getRowId={(row) => row.meeting_id}
               loading={loading}
+              pageSizeOptions={[5, 10, 20, 50]}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
+              paginationMode="server"
+              rowCount={rowCount}
             />
           </Box>
         </div>
@@ -151,7 +271,7 @@ const MeetingsSchedulesPage: React.FC = () => {
           >
             <h5 className="mb-4">Edit Meeting</h5>
 
-            <form>
+            <form onSubmit={handleSubmit}>
               {/* Requestor Name */}
               <div className="mb-3">
                 <label className="form-label fw-semibold">
@@ -160,7 +280,7 @@ const MeetingsSchedulesPage: React.FC = () => {
                 <input
                   type="text"
                   className="form-control"
-                  value={selectedMeeting?.requestor_name || ""}
+                  value={selectedMeeting?.requester_name || ""}
                   placeholder="(Auto-filled)"
                   disabled
                 />
@@ -188,7 +308,7 @@ const MeetingsSchedulesPage: React.FC = () => {
                 <input
                   type="text"
                   className="form-control"
-                  value={selectedMeeting?.meeting_duration || ""}
+                  value={selectedMeeting?.duration || ""}
                   placeholder="(Auto-filled)"
                   disabled
                 />
@@ -219,8 +339,9 @@ const MeetingsSchedulesPage: React.FC = () => {
                   type="time"
                   className="form-control"
                   name="meeting_time"
-                  value={selectedMeeting ? formatTimeForInput(selectedMeeting.meeting_time) : ""}
-                  onChange={handleChange}
+                  placeholder="e.g., 9:00 AM"
+                  value={selectedMeeting?.meeting_time || ""}
+                  onChange={handleTimeChange}
                 />
               </div>
 
@@ -245,21 +366,16 @@ const MeetingsSchedulesPage: React.FC = () => {
                 </label>
                 <select
                   className="form-select"
-                  name="meeting_status"
-                  value={selectedMeeting?.meeting_status || ""}
+                  name="schedule_status"
+                  value={selectedMeeting?.schedule_status || ""}
                   onChange={handleChange}
                 >
                   <option value="">{`Select ${MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS}`}</option>
-                  <option value={MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_REQUEST_PENDING}>
-                   {MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_REQUEST_PENDING} </option>
-                  <option value={MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_SCHEDULED}>
-                    {MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_SCHEDULED} </option>
-                  <option value={MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_COMPLETED}>
-                    {MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_COMPLETED} </option>
-                  <option value={MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_MISSED}>
-                   {MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_MISSED} </option>
-                  <option value={MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_CANCELLED}>
-                       {MEETINGS_STRINGS.FORM.FIELD_LABELS.MEETING_STATUSES.STATUS_CANCELLED} </option>
+                  <option value="Pending">Pending</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Missed">Missed</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
 
@@ -272,7 +388,11 @@ const MeetingsSchedulesPage: React.FC = () => {
                 >
                   Reset
                 </button>
-                <button type="submit" className="btn btn-primary" disabled>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={!selectedMeeting}
+                >
                   Save
                 </button>
               </div>
@@ -285,23 +405,36 @@ const MeetingsSchedulesPage: React.FC = () => {
         open={openInvestorDetails}
         onClose={() => setOpenInvestorDetails(false)}
         title="Investor Details"
-        imageUrl={selectedInvestor?.image_url}
+        imageUrl={selectedInvestor?.investor_profile?.image}
         fields={
           selectedInvestor
-            ? Object.keys(selectedInvestor)
-                .filter(
-                  (key) =>
-                    !["profile_photo", "investor_id", "image_url", "city_id", "state_id", "country_id"].includes(key)
-                )
-                .map((key) => ({
-                  label: key.replace(/_/g, " ").toUpperCase(),
-                  value:
-                    key === "status"
-                      ? selectedInvestor.status === "1"
-                        ? "Active"
-                        : "Inactive"
-                      : (selectedInvestor as any)[key],
-                }))
+            ? [
+                { label: "Full Name", value: selectedInvestor.user_details?.full_name },
+                { label: "Profile", value: selectedInvestor.investor_profile?.profile },
+                { label: "Investment Stage", value: selectedInvestor.investor_profile?.investment_stage },
+                { label: "Availability", value: selectedInvestor.investor_profile?.availability },
+                { label: "Meeting City", value: selectedInvestor.investor_profile?.meeting_city },
+                { label: "Countries to Invest", value: selectedInvestor.investor_profile?.countries_to_invest },
+                { label: "Investment Industry", value: selectedInvestor.investor_profile?.investment_industry },
+                { label: "Language", value: selectedInvestor.investor_profile?.language },
+                { label: "Average Rating", value: selectedInvestor.investor_profile?.avg_rating },
+                { label: "Country", value: selectedInvestor.investor_profile?.country },
+                { label: "State", value: selectedInvestor.investor_profile?.state },
+                { label: "City", value: selectedInvestor.investor_profile?.city },
+                { label: "Investment Range", value: selectedInvestor.investor_profile?.investment_range },
+                { label: "Status", value: selectedInvestor.investor_profile?.status === 1 ? "Active" : "Inactive" },
+                { label: "Approval Status", value: selectedInvestor.investor_profile?.approval_status === 1 ? "Approved" : "Pending" },
+                { label: "Email", value: selectedInvestor.user_details?.email },
+                { label: "Mobile", value: selectedInvestor.user_details?.mobile },
+                { label: "Address", value: selectedInvestor.user_details?.address },
+                { label: "LinkedIn URL", value: selectedInvestor.user_details?.linkedin_url },
+                { label: "Summary", value: selectedInvestor.user_details?.summary },
+                { label: "Total Meetings", value: selectedInvestor.meeting_statistics?.total_meetings },
+                { label: "Pending Meetings", value: selectedInvestor.meeting_statistics?.pending_meetings },
+                { label: "Scheduled Meetings", value: selectedInvestor.meeting_statistics?.scheduled_meetings },
+                { label: "Completed Meetings", value: selectedInvestor.meeting_statistics?.completed_meetings },
+                { label: "Missed Meetings", value: selectedInvestor.meeting_statistics?.missed_meetings },
+              ]
             : []
         }
       />
@@ -313,18 +446,14 @@ const MeetingsSchedulesPage: React.FC = () => {
         imageUrl={selectedUser?.profile_photo || ""}
         fields={
           selectedUser
-            ? Object.keys(selectedUser)
-                .filter(
-                  (key) =>
-                    !["profile_photo", "country_id", "state_id", "city_id", "user_id"].includes(key)
-                )
-                .map((key) => ({
-                  label: key.replace(/_/g, " ").toUpperCase(),
-                  value:
-                    key === "status"
-                      ? selectedUser.status
-                      : (selectedUser as any)[key],
-                }))
+            ? [
+                { label: "Full Name", value: selectedUser.full_name },
+                { label: "Mobile", value: selectedUser.mobile },
+                { label: "Email", value: selectedUser.email },
+                { label: "Country", value: selectedUser.country_name },
+                { label: "State", value: selectedUser.state_name },
+                { label: "City", value: selectedUser.city_name },
+              ]
             : []
         }
       />
@@ -336,7 +465,6 @@ const MeetingsSchedulesPage: React.FC = () => {
       />
     </div>
   );
-
 };
 
 export default MeetingsSchedulesPage;

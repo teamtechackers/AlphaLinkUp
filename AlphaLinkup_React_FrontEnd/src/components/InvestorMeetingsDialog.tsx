@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import { DataGrid } from "@mui/x-data-grid";
 import { MeetingModel, MeetingModelLabels } from "../models/meeting_model";
 import { MEETINGS_STRINGS } from "../utils/strings/pages/meetings_strings";
-import { COLORS } from "../utils/theme/colors";
 
 interface InvestorMeetingsDialogProps {
   open: boolean;
@@ -16,13 +15,13 @@ const InvestorMeetingsDialog: React.FC<InvestorMeetingsDialogProps> = ({ open, o
   const columns = useMemo(
     () => [
       { field: MeetingModelLabels.MEETING_ID, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_ID, width: 120 },
-      { field: MeetingModelLabels.REQUESTOR_NAME, headerName: MEETINGS_STRINGS.TABLE.HEADER_REQUESTOR_NAME, width: 180 },
+      { field: MeetingModelLabels.REQUESTER_NAME, headerName: MEETINGS_STRINGS.TABLE.HEADER_REQUESTOR_NAME, width: 180 },
       { field: MeetingModelLabels.INVESTOR_NAME, headerName: MEETINGS_STRINGS.TABLE.HEADER_INVESTOR_NAME, width: 180 },
-      { field: MeetingModelLabels.MEETING_DURATION, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DURATION, width: 120 },
+      { field: MeetingModelLabels.DURATION, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DURATION, width: 120 },
       { field: MeetingModelLabels.MEETING_TYPE, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TYPE, width: 120 },
       { field: MeetingModelLabels.MEETING_TIME, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_TIME, width: 120 },
       { field: MeetingModelLabels.MEETING_DATE, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_DATE, width: 140 },
-      { field: MeetingModelLabels.MEETING_STATUS, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS, width: 140 },
+      { field: MeetingModelLabels.SCHEDULE_STATUS, headerName: MEETINGS_STRINGS.TABLE.HEADER_MEETING_STATUS, width: 140 },
     ],
     []
   );

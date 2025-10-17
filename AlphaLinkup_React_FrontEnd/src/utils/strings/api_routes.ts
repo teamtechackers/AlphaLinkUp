@@ -157,4 +157,12 @@ export const API_ROUTES = {
     DELETE: "/delete-investors",
     CHECK_DUPLICATE: "/check-duplicate-investor",
   },
+  
+  MEETINGS: {
+    GET_MEETING_LIST: "/Api-Admin-Meeting-Requests",
+    GET_REQUESTOR_DETAILS: "/Api-Get-Requestor-Details",
+    GET_INVESTOR_DETAILS: "/Api-Admin-Investor-Profile",
+    UPDATE_MEETING_REQUEST: "/Api-Admin-Update-Meeting-Request",
+    GET_INVESTOR_MEETINGS: "/Api-Admin-Investor-Meeting-Requests",
+  },
 };

@@ -1,49 +1,78 @@
-export interface InvestorDetailModel {
-  investor_id: string;
-  name: string;
-  country_id: string;
-  country_name: string;
-  state_id: string;
-  state_name: string;
-  city_id: string;
-  city_name: string;
-  image_url: string;
-  fund_size: string;
-  linked_url: string;
-  bio: string;
+export interface InvestorProfileModel {
+  investor_id: number;
+  user_id: number;
   profile: string;
   investment_stage: string;
-  availability: string;
+  availability: string | null;
   meeting_city: string;
   countries_to_invest: string;
   investment_industry: string;
   language: string;
-  reference_no: string;
-  approval_status: string;
-  status: string;
-  rating: string;
-  no_of_meetings: string;
-  no_of_investments: string;
-  invests_in: string;
-  meeting_types: string;
-  meeting_places: string;
-  total_investments: string;
-  can_invest_in: string;
+  avg_rating: number | null;
+  image: string;
+  country: string;
+  state: string;
+  city: string;
+  investment_range: string;
+  status: number;
+  approval_status: number;
+  created_dts: string;
 }
 
-export const InvestorDetialModelLabels = {
+export interface UserDetailsModel {
+  user_id: number;
+  full_name: string;
+  email: string;
+  mobile: string;
+  address: string;
+  linkedin_url: string;
+  summary: string;
+  profile_photo: string;
+  created_dts: string;
+}
+
+export interface MeetingStatisticsModel {
+  total_meetings: number;
+  pending_meetings: string;
+  scheduled_meetings: string;
+  completed_meetings: string;
+  missed_meetings: string;
+}
+
+export interface RatingsModel {
+  "1_star": number;
+  "2_star": number;
+  "3_star": number;
+  "4_star": number;
+  "5_star": number;
+  total_ratings: number;
+  total_reviews: number;
+  avg_rating: number;
+}
+
+export interface ReviewModel {
+  review_id?: number;
+  rating: number;
+  review_text: string;
+  reviewer_name: string;
+  created_dts: string;
+}
+
+export interface RatingsAndReviewsModel {
+  ratings: RatingsModel;
+  recent_reviews: ReviewModel[];
+}
+
+export interface InvestorDetailModel {
+  investor_profile: InvestorProfileModel;
+  user_details: UserDetailsModel;
+  meeting_statistics: MeetingStatisticsModel;
+  ratings_and_reviews: RatingsAndReviewsModel;
+}
+
+export const InvestorDetailModelLabels = {
   INVESTOR_ID: "investor_id",
-  NAME: "name",
-  COUNTRY_ID: "country_id",
-  COUNTRY_NAME: "country_name",
-  STATE_ID: "state_id",
-  STATE_NAME: "state_name",
-  CITY_ID: "city_id",
-  CITY_NAME: "city_name",
-  IMAGE_URL: "image_url",
-  FUND_SIZE: "fund_size",
-  LINKED_URL: "linked_url",
-  BIO: "bio",
+  USER_ID: "user_id",
   PROFILE: "profile",
   INVESTMENT_STAGE: "investment_stage",
   AVAILABILITY: "availability",
@@ -51,15 +80,25 @@ export const InvestorDetialModelLabels = {
   COUNTRIES_TO_INVEST: "countries_to_invest",
   INVESTMENT_INDUSTRY: "investment_industry",
   LANGUAGE: "language",
-  REFERENCE_NO: "reference_no",
-  APPROVAL_STATUS: "approval_status",
+  AVG_RATING: "avg_rating",
+  IMAGE: "image",
+  COUNTRY: "country",
+  STATE: "state",
+  CITY: "city",
+  INVESTMENT_RANGE: "investment_range",
   STATUS: "status",
-  RATING: "rating",
-  NO_OF_MEETINGS: "no_of_meetings",
-  NO_OF_INVESTMENTS: "no_of_investments",
-  INVESTS_IN: "invests_in",
-  MEETING_TYPES: "meeting_types",
-  MEETING_PLACES: "meeting_places",
-  TOTAL_INVESTMENTS: "total_investments",
-  CAN_INVEST_IN: "can_invest_in",
+  APPROVAL_STATUS: "approval_status",
+  CREATED_DTS: "created_dts",
+  FULL_NAME: "full_name",
+  EMAIL: "email",
+  MOBILE: "mobile",
+  ADDRESS: "address",
+  LINKEDIN_URL: "linkedin_url",
+  SUMMARY: "summary",
+  PROFILE_PHOTO: "profile_photo",
+  TOTAL_MEETINGS: "total_meetings",
+  PENDING_MEETINGS: "pending_meetings",
+  SCHEDULED_MEETINGS: "scheduled_meetings",
+  COMPLETED_MEETINGS: "completed_meetings",
+  MISSED_MEETINGS: "missed_meetings",
 };
