@@ -471,6 +471,10 @@ router.post('/Api-Admin-Update-Meeting-Request', uploadFormData.none(), ApiContr
 router.get('/Api-Admin-Investor-Meeting-Requests', ApiController.getAdminInvestorMeetingRequests);
 router.post('/Api-Admin-Investor-Meeting-Requests', uploadFormData.none(), ApiController.getAdminInvestorMeetingRequests);
 
+// Get Requestor Details API
+router.get('/Api-Get-Requestor-Details', uploadFormData.none(), ApiController.getRequestorDetails);
+router.post('/Api-Get-Requestor-Details', uploadFormData.none(), ApiController.getRequestorDetails);
+
 router.post('/Api-My-Investor-Meets', uploadFormData.none(), ApiController.getInvestorMeets);
 router.get('/Api-Investor-Desk', ApiController.getInvestorDesk);
 // Chat Routes

@@ -2324,8 +2324,9 @@ const ApiController = {
 
       // Transform to admin format
       const adminMeetingRequests = meetingRequests.map(item => ({
-        meeting_id: item.meeting_id,           // Actual meeting type ID
-        request_id: item.iu_id,                // Request/Unlock ID
+        meeting_id: item.iu_id,                // Unique request ID (primary identifier)
+        meeting_type_id: item.meeting_id,      // Meeting type ID (2, 3, 4, etc.)
+        request_id: item.iu_id,                // Request/Unlock ID (same as meeting_id)
         requester_name: item.requester_name || 'Unknown User',
         investor_id: item.investor_id,
         investor_name: item.investor_name,
@@ -4584,6 +4585,212 @@ const ApiController = {
         status: false,
         rcode: 500,
         message: 'Internal server error'
+      });
+    }
+  },
+
+  // Get Requestor Details by ID
+  async getRequestorDetails(req, res) {
+    try {
+      const { user_id, token, requestor_id } = {
+        ...req.query,
+        ...req.body
+      };
+
+      // Validate required parameters
+      if (!user_id || !token) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Token Mismatch Exception'
+        });
+      }
+
+      if (!requestor_id) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Requestor ID is required'
+        });
+      }
+
+      // Decode user ID
+      const decodedUserId = idDecode(user_id);
+      if (!decodedUserId) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Invalid user ID'
+        });
+      }
+
+      // Verify user token
+      const userRows = await query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [decodedUserId]);
+      if (!userRows.length) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Not A Valid User'
+        });
+      }
+
+      const user = userRows[0];
+      if (user.unique_token !== token) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Token Mismatch Exception'
+        });
+      }
+
+      // Use requestor ID directly (1, 2, 3, etc.)
+      const decodedRequestorId = parseInt(requestor_id);
+      if (!decodedRequestorId || isNaN(decodedRequestorId)) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Invalid Requestor ID'
+        });
+      }
+
+      // Get requestor details
+      const requestorQuery = `
+        SELECT 
+          u.user_id,
+          u.full_name,
+          u.email,
+          u.mobile,
+          u.profile_photo,
+          u.status,
+          u.created_dts,
+          countries.name AS country_name,
+          states.name AS state_name,
+          cities.name AS city_name
+        FROM users u
+        LEFT JOIN countries ON countries.id = u.country_id
+        LEFT JOIN states ON states.id = u.state_id
+        LEFT JOIN cities ON cities.id = u.city_id
+        WHERE u.user_id = ? AND u.status = 1
+      `;
+
+      const requestorRows = await query(requestorQuery, [decodedRequestorId]);
+
+      if (!requestorRows.length) {
+        return res.json({
+          status: false,
+          rcode: 500,
+          message: 'Requestor not found or inactive'
+        });
+      }
+
+      const requestor = requestorRows[0];
+
+      // Get requestor's work details
+      const workDetailsQuery = `
+        SELECT 
+          work_detail_id,
+          company_name,
+          designation,
+          start_date,
+          end_date,
+          currently_working,
+          created_dts
+        FROM user_work_details 
+        WHERE user_id = ? AND status = 1
+        ORDER BY currently_working DESC, end_date DESC, created_dts DESC
+      `;
+
+      const workDetails = await query(workDetailsQuery, [decodedRequestorId]);
+
+      // Get requestor's education details
+      const educationQuery = `
+        SELECT 
+          education_detail_id,
+          institute_name,
+          degree,
+          start_date,
+          end_date,
+          created_dts
+        FROM user_education_details 
+        WHERE user_id = ? AND status = 1
+        ORDER BY end_date DESC, created_dts DESC
+      `;
+
+      const educationDetails = await query(educationQuery, [decodedRequestorId]);
+
+      // Get requestor's project details
+      const projectQuery = `
+        SELECT 
+          project_detail_id,
+          project_name,
+          description,
+          project_logo,
+          start_month,
+          start_year,
+          closed_month,
+          closed_year,
+          created_dts
+        FROM user_project_details 
+        WHERE user_id = ? AND status = 1
+        ORDER BY closed_year DESC, closed_month DESC, created_dts DESC
+      `;
+
+      const projectDetails = await query(projectQuery, [decodedRequestorId]);
+
+      // Format response
+      const response = {
+        status: true,
+        rcode: 200,
+        message: 'Requestor details fetched successfully',
+        data: {
+          user_id: idEncode(requestor.user_id),
+          full_name: requestor.full_name,
+          email: requestor.email,
+          mobile: requestor.mobile,
+          profile_photo: requestor.profile_photo,
+          country_name: requestor.country_name,
+          state_name: requestor.state_name,
+          city_name: requestor.city_name,
+          created_dts: requestor.created_dts,
+          work_details: workDetails.map(work => ({
+            work_detail_id: work.work_detail_id,
+            company_name: work.company_name,
+            designation: work.designation,
+            start_date: work.start_date,
+            end_date: work.end_date,
+            currently_working: work.currently_working,
+            created_dts: work.created_dts
+          })),
+          education_details: educationDetails.map(edu => ({
+            education_detail_id: edu.education_detail_id,
+            institute_name: edu.institute_name,
+            degree: edu.degree,
+            start_date: edu.start_date,
+            end_date: edu.end_date,
+            created_dts: edu.created_dts
+          })),
+          project_details: projectDetails.map(project => ({
+            project_detail_id: project.project_detail_id,
+            project_name: project.project_name,
+            description: project.description,
+            project_logo: project.project_logo,
+            start_month: project.start_month,
+            start_year: project.start_year,
+            closed_month: project.closed_month,
+            closed_year: project.closed_year,
+            created_dts: project.created_dts
+          }))
+        }
+      };
+
+      return res.json(response);
+
+    } catch (error) {
+      console.error('getRequestorDetails error:', error);
+      return res.json({
+        status: false,
+        rcode: 500,
+        message: 'Failed to fetch requestor details'
       });
     }
   }

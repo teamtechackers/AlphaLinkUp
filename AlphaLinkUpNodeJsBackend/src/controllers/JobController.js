@@ -461,7 +461,37 @@ class JobController {
         }
       }
       
+      // Save notification to database for all users (ALWAYS run this)
       try {
+        const NotificationController = require('./NotificationController');
+        
+        // Get all users to send notification to
+        const allUsers = await query('SELECT user_id FROM users WHERE status = 1');
+        
+        for (const user of allUsers) {
+          await NotificationController.saveNotification({
+            user_id: user.user_id,
+            notification_type: 'job',
+            title: 'New Job Available!',
+            message: `${job_title} - ${address || 'Location not specified'}`,
+            data: {
+              type: 'job',
+              jobId: finalJobId.toString(),
+              timestamp: new Date().toISOString()
+            },
+            source_id: finalJobId,
+            source_type: 'job'
+          });
+        }
+        
+        console.log(`Job notification saved to database for ${allUsers.length} users`);
+      } catch (dbError) {
+        console.error('Job notification database save error:', dbError);
+      }
+
+      // Try Firebase notification separately (don't let this fail the database notifications)
+      try {
+        console.log('🔥 Attempting to send Firebase topic notification for job:', finalJobId);
         const notificationData = {
           type: 'job',
           jobId: finalJobId.toString(),
@@ -469,33 +499,10 @@ class JobController {
         };
 
         await NotificationService.sendTopicNotification('job-notifications', 'New Job Available!', `${job_title} - ${address || 'Location not specified'}`, notificationData);
-        console.log('Job topic notification sent successfully');
-
-        // Save notification to database for all users
-        try {
-          const NotificationController = require('./NotificationController');
-          
-          // Get all users to send notification to
-          const allUsers = await query('SELECT user_id FROM users WHERE status = 1');
-          
-          for (const user of allUsers) {
-            await NotificationController.saveNotification({
-              user_id: user.user_id,
-              notification_type: 'job',
-              title: 'New Job Available!',
-              message: `${job_title} - ${address || 'Location not specified'}`,
-              data: notificationData,
-              source_id: finalJobId,
-              source_type: 'job'
-            });
-          }
-          
-          console.log(`Job notification saved to database for ${allUsers.length} users`);
-        } catch (dbError) {
-          console.error('Job notification database save error:', dbError);
-        }
-      } catch (notificationError) {
-        console.error('Job topic notification error:', notificationError);
+        console.log('✅ Job Firebase topic notification sent successfully');
+      } catch (firebaseError) {
+        console.error('❌ Job Firebase topic notification error:', firebaseError);
+        // Continue execution - Firebase failure should not affect database notifications
       }
       
       return res.json({
