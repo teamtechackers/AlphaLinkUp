@@ -10,6 +10,7 @@ export interface MeetingModel {
   meeting_time: string;
   meeting_date: string;
   schedule_status: string;
+  request_status?: string;
   meeting_location?: string;
   meeting_lat?: string | null;
   meeting_lng?: string | null;
@@ -33,6 +34,7 @@ export const MeetingModelLabels = {
   MEETING_TIME: "meeting_time",
   MEETING_DATE: "meeting_date",
   SCHEDULE_STATUS: "schedule_status",
+  REQUEST_STATUS: "request_status",
   MEETING_LOCATION: "meeting_location",
   MEETING_URL: "meeting_url",
   MEETING_NAME: "meeting_name",
