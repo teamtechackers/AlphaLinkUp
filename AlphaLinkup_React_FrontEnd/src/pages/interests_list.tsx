@@ -147,10 +147,19 @@ const InterestsList: React.FC = () => {
 
   return (
     <div className="container-fluid vh-100" style={{ backgroundColor: COLORS.lightGray }}>
-      <h4 className="my-4">{INTERESTS_STRINGS.TITLE}</h4>
-      <div className="row g-4 w-100">
+
+      {/* Page Title */}
+      <div className="row">
+        <div className="col-12">
+          <div style={STYLES.page_title}>
+              {INTERESTS_STRINGS.TITLE}
+            </div>
+        </div>
+      </div>
+
+      <div className="row">
         {/* Table */}
-        <div className="col-lg-8 p-0">
+        <div className="col-lg-8">
           <Box sx={{ height: 800, width: "100%" }}>
             <DataGrid
               rows={items}

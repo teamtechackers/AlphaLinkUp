@@ -306,216 +306,228 @@ const UsersList: React.FC = () => {
   );
 
   return (
-    <div className="container-fluid vh-100" style={{ backgroundColor: COLORS.lightGray }}>
-      <h4 className="my-4">{USERS_STRINGS.TITLE}</h4>
-      <div className="row g-4 w-100">
-        {/* Table */}
-        <div className="col-lg-8 p-0">
-          <Box sx={{ height: 800, width: "100%" }}>
-            <DataGrid
-              rows={items}
-              columns={columns}
-              loading={loading}
-              getRowId={(row) => row.user_id}
-              disableRowSelectionOnClick
-              pageSizeOptions={[5, 10, 20, 50]}
-              paginationModel={paginationModel}
-              onPaginationModelChange={setPaginationModel}
-              paginationMode="server"
-              rowCount={rowCount}  
-            />
-          </Box>
-        </div>
+    <div className="content">
+      <div className="container-fluid" style={{ backgroundColor: COLORS.lightGray }}>
 
-        {/* Form */}
-        <div className="col-lg-4">
-          <div className="card shadow-sm">
-            <div className="card-header" style={{ backgroundColor: COLORS.lightGray }}>
-              <h5 className="mb-0">{editing ? USERS_STRINGS.FORM.EDIT_USER : USERS_STRINGS.FORM.ADD_USER}</h5>
+        {/* Page Title */}
+          <div className="row">
+            <div className="col-12">
+              <div style={STYLES.page_title}>
+                  {USERS_STRINGS.TITLE}
+                </div>
             </div>
-            <div className="card-body">
-              <form onSubmit={onSubmit}>
-                <div className="row g-3 align-items-end">
-                  
-                  {/* Full Name */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.FULL_NAME} 
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <input
-                      className="form-control"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      type="text"
-                      maxLength={CONSTANTS.MAX_LENGTHS.FIELD_100}
-                    />
-                  </div>
+          </div>
 
-                  {/* Mobile */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.MOBILE} 
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <input
-                      className="form-control"
-                      value={mobile}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (/^\d*$/.test(val)) {
-                          setMobile(val);
-                        }
-                      }}
-                      required
-                      type="number"
-                      maxLength={CONSTANTS.MAX_LENGTHS.FIELD_100}
-                      onWheel={(e) => e.currentTarget.blur()}
-                    />
-                  </div>
+        <div className="row">
 
-                  {/* Email */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.EMAIL} 
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      maxLength={CONSTANTS.MAX_LENGTHS.FIELD_150}
-                    />
-                  </div>
+          {/* Table */}
+          <div className="col-lg-8">
+            <Box sx={{ height: 800, width: "100%" }}>
+              <DataGrid
+                rows={items}
+                columns={columns}
+                loading={loading}
+                getRowId={(row) => row.user_id}
+                disableRowSelectionOnClick
+                pageSizeOptions={[5, 10, 20, 50]}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                paginationMode="server"
+                rowCount={rowCount}  
+              />
+            </Box>
+          </div>
 
-                  {/* Profile Photo */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.PROFILE_PHOTO} 
-                    </label>
-                    <input
-                      type="file"
-                      className="form-control"
-                      accept="image/*"
-                      onChange={(e) => setUploadedImage(e.target.files?.[0] ?? null)}
-                      required={!editing}
-                    />
-                  </div>
+          {/* Form */}
+          <div className="col-lg-4">
+            <div className="card shadow-sm">
+              <div className="card-header" style={{ backgroundColor: COLORS.lightGray }}>
+                <h5 className="mb-0">{editing ? USERS_STRINGS.FORM.EDIT_USER : USERS_STRINGS.FORM.ADD_USER}</h5>
+              </div>
+              <div className="card-body">
+                <form onSubmit={onSubmit}>
+                  <div className="row g-3 align-items-end">
+                    
+                    {/* Full Name */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.FULL_NAME} 
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        required
+                        type="text"
+                        maxLength={CONSTANTS.MAX_LENGTHS.FIELD_100}
+                      />
+                    </div>
 
-                  {/* Address */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.ADDRESS}  
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      required
-                      maxLength={CONSTANTS.MAX_LENGTHS.FIELD_150}
-                    />
-                  </div>
+                    {/* Mobile */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.MOBILE} 
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        value={mobile}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*$/.test(val)) {
+                            setMobile(val);
+                          }
+                        }}
+                        required
+                        type="number"
+                        maxLength={CONSTANTS.MAX_LENGTHS.FIELD_100}
+                        onWheel={(e) => e.currentTarget.blur()}
+                      />
+                    </div>
 
-                  {/* Country */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.COUNTRY}  
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <select
-                      className="form-select"
-                      value={countryId}
-                      onChange={(e) => setCountryId(e.target.value)}
-                      required
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((c) => (
-                        <option key={c.country_id} value={c.country_id}>
-                          {c.country_name}
+                    {/* Email */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.EMAIL} 
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        maxLength={CONSTANTS.MAX_LENGTHS.FIELD_150}
+                      />
+                    </div>
+
+                    {/* Profile Photo */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.PROFILE_PHOTO} 
+                      </label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept="image/*"
+                        onChange={(e) => setUploadedImage(e.target.files?.[0] ?? null)}
+                        required={!editing}
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.ADDRESS}  
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        required
+                        maxLength={CONSTANTS.MAX_LENGTHS.FIELD_150}
+                      />
+                    </div>
+
+                    {/* Country */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.COUNTRY}  
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <select
+                        className="form-select"
+                        value={countryId}
+                        onChange={(e) => setCountryId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select Country</option>
+                        {countries.map((c) => (
+                          <option key={c.country_id} value={c.country_id}>
+                            {c.country_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* State */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.STATE}   
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <select
+                        className="form-select"
+                        value={stateId}
+                        onChange={(e) => setStateId(e.target.value)}
+                        required
+                        disabled={!countryId}
+                      >
+                        <option value="">Select State</option>
+                        {states.map((s) => (
+                          <option key={s.state_id} value={s.state_id}>
+                            {s.state_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* City */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.FORM.FIELD_LABELS.CITY}  
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <select
+                        className="form-select"
+                        value={cityId}
+                        onChange={(e) => setCityId(e.target.value)}
+                        disabled={!stateId}
+                      >
+                        <option value="">Select City</option>
+                        {cities.map((ct) => (
+                        <option key={ct.city_id} value={ct.city_id}>
+                          {ct.city_name}
                         </option>
-                      ))}
-                    </select>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Status */}
+                    <div className="col-md-12">
+                      <label className="form-label" style={STYLES.field_label}>
+                        {USERS_STRINGS.TABLE.HEADER_STATUS} 
+                        <span style={{ color: COLORS.red}}> *</span>
+                      </label>
+                      <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)} required>
+                        <option value="1">{USERS_STRINGS.FORM.FIELD_LABELS.STATUS_ACTIVE}</option>
+                        <option value="0">{USERS_STRINGS.FORM.FIELD_LABELS.STATUS_INACTIVE}</option>
+                      </select>
+                    </div>
                   </div>
 
-                  {/* State */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.STATE}   
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <select
-                      className="form-select"
-                      value={stateId}
-                      onChange={(e) => setStateId(e.target.value)}
-                      required
-                      disabled={!countryId}
-                    >
-                      <option value="">Select State</option>
-                      {states.map((s) => (
-                        <option key={s.state_id} value={s.state_id}>
-                          {s.state_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* City */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.FORM.FIELD_LABELS.CITY}  
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <select
-                      className="form-select"
-                      value={cityId}
-                      onChange={(e) => setCityId(e.target.value)}
-                      disabled={!stateId}
-                    >
-                      <option value="">Select City</option>
-                      {cities.map((ct) => (
-                      <option key={ct.city_id} value={ct.city_id}>
-                        {ct.city_name}
-                      </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Status */}
-                  <div className="col-md-12">
-                    <label className="form-label" style={STYLES.field_label}>
-                      {USERS_STRINGS.TABLE.HEADER_STATUS} 
-                      <span style={{ color: COLORS.red}}> *</span>
-                    </label>
-                    <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)} required>
-                      <option value="1">{USERS_STRINGS.FORM.FIELD_LABELS.STATUS_ACTIVE}</option>
-                      <option value="0">{USERS_STRINGS.FORM.FIELD_LABELS.STATUS_INACTIVE}</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="d-flex gap-2 mt-3">
-                  <button type="submit" className="btn" style={{ backgroundColor: COLORS.purple, color: COLORS.white }}>
-                    {editing ? CONSTANTS.BUTTONS.UPDATE : CONSTANTS.BUTTONS.SAVE}
-                  </button>
-
-                  {editing && (
-                    <button
-                      type="button"
-                      className="btn"
-                      style={{ backgroundColor: COLORS.red, color: COLORS.white }}
-                      onClick={resetForm}
-                    >
-                      {CONSTANTS.BUTTONS.CANCEL}
+                  {/* Buttons */}
+                  <div className="d-flex gap-2 mt-3">
+                    <button type="submit" className="btn" style={{ backgroundColor: COLORS.purple, color: COLORS.white }}>
+                      {editing ? CONSTANTS.BUTTONS.UPDATE : CONSTANTS.BUTTONS.SAVE}
                     </button>
-                  )}
-                </div>
-              </form>
+
+                    {editing && (
+                      <button
+                        type="button"
+                        className="btn"
+                        style={{ backgroundColor: COLORS.red, color: COLORS.white }}
+                        onClick={resetForm}
+                      >
+                        {CONSTANTS.BUTTONS.CANCEL}
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { CONSTANTS } from "../utils/strings/constants";
 import meetingsSchedulesService from "../services/meetings_schedules_service";
 import { useEffect } from "react";
+import { STYLES } from "../utils/typography/styles";
 
 const MeetingsSchedulesPage: React.FC = () => {
   const [items, setItems] = useState<MeetingModel[]>([]);
@@ -245,7 +246,15 @@ const MeetingsSchedulesPage: React.FC = () => {
 
   return (
     <div className="container-fluid" style={{ backgroundColor: COLORS.lightGray }}>
-      <h4 className="my-4">{MEETINGS_STRINGS.TITLE}</h4>
+      
+      {/* Page Title */}
+      <div className="row">
+        <div className="col-12">
+          <div style={STYLES.page_title}>
+              {MEETINGS_STRINGS.TITLE}
+            </div>
+        </div>
+      </div>
 
       <div className="row">
         <div className="col-lg-8">

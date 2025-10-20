@@ -60,7 +60,7 @@ export const CONSTANTS = {
       LOGOUT: 'Logout',
     },
     FOOTER: {
-      APP_TITLE: '2024 &copy; Alpha Linkup',
+      APP_TITLE: '2024 @ copy; Alpha Linkup',
       ABOUT_US: 'About Us',
       HELP: 'Help',
       CONTACT_US: 'Contact Us',

@@ -79,12 +79,6 @@ const AdminDashboard: React.FC = () => {
           <div className="alert alert-warning">
             <h5>{CONSTANTS.MESSAGES.CONNECTION_ERROR}</h5>
             <p>{error}</p>
-            <ul>
-              <li>NodeJS backend server running at <code>http://localhost:5000</code></li>
-              <li>CORS configured</li>
-              <li>Session authentication working</li>
-              <li>Database connected</li>
-            </ul>
             <button className="btn btn-outline-warning" onClick={handleRetry}>
               {CONSTANTS.MESSAGES.RETRY_CONNECTION}
             </button>
@@ -111,7 +105,7 @@ const AdminDashboard: React.FC = () => {
         <div className="row">
 
           {/* Users */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div
@@ -130,7 +124,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Jobs */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -148,7 +142,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Events */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -166,7 +160,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Service Providers */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -184,7 +178,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Investors */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -202,7 +196,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Meetings Schedules */}
-          <div className="col-md-6 col-xl-3 mb-3">
+          <div className="col-md-6 col-xl-3 mb-4">
             <div className="card shadow-sm border-0 py-2">
               <div className="d-flex align-items-center p-3">
                 <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -218,10 +212,12 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Tables Row */}
         <div className="row equal-height">
+          
           <div className="col-xl-6">
             <div className="card-box p-4" style={{ backgroundColor: COLORS.white, borderRadius: "0.5rem"  }}>
               <h4 className="header-title mb-3" style={STYLES.table_title}>{DASHBOARD_STRINGS.TABLE_JOBS.TABLE_TITLE}</h4>
