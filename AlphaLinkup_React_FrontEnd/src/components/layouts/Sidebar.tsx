@@ -22,12 +22,12 @@ const Sidebar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  const handleHover = (e: React.MouseEvent<HTMLElement>) => {
-    e.currentTarget.style.color = COLORS.teal;
+  const handleHover = (e: React.MouseEvent<HTMLElement>, active: boolean) => {
+    if (!active) e.currentTarget.style.color = COLORS.teal;
   };
 
-  const handleLeave = (e: React.MouseEvent<HTMLElement>) => {
-    e.currentTarget.style.color = COLORS.darkGray;
+  const handleLeave = (e: React.MouseEvent<HTMLElement>, active: boolean) => {
+    if (!active) e.currentTarget.style.color = COLORS.darkGray;
   };
 
   const handleMenuClick = () => {
@@ -62,9 +62,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.DASHBOARD}
                 className="nav-link"
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
-                style={STYLES.nav_item}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.DASHBOARD))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.DASHBOARD))}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.DASHBOARD) ? COLORS.teal : COLORS.darkGray,
+                }}
               >
               <FiAirplay size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Dashboard
@@ -75,8 +78,8 @@ const Sidebar: React.FC = () => {
               <button
                 className="nav-link"
                 style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                onMouseEnter={(e) => handleHover(e, isActive("masters"))}
+                onMouseLeave={(e) => handleLeave(e, isActive("masters"))}
                 onClick={() => toggleDropdown("masters")}
                 aria-expanded={openDropdown === "masters"}
               >
@@ -97,8 +100,8 @@ const Sidebar: React.FC = () => {
                       justifyContent: "space-between",
                       alignItems: "center",
                     }}
-                    onMouseEnter={handleHover}
-                    onMouseLeave={handleLeave}
+                    onMouseEnter={(e) => handleHover(e, isActive("general"))}
+                    onMouseLeave={(e) => handleLeave(e, isActive("general"))}
                     onClick={() => toggleSubDropdown("general")}
                   >
                     <span style={{ display: "flex", alignItems: "center" }}>
@@ -131,8 +134,8 @@ const Sidebar: React.FC = () => {
                       justifyContent: "space-between",
                       alignItems: "center",
                     }}
-                    onMouseEnter={handleHover}
-                    onMouseLeave={handleLeave}
+                    onMouseEnter={(e) => handleHover(e, isActive("jobs"))}
+                    onMouseLeave={(e) => handleLeave(e, isActive("jobs"))}
                     onClick={() => toggleSubDropdown("jobs")}
                   >
                     <span style={{ display: "flex", alignItems: "center" }}>
@@ -162,8 +165,8 @@ const Sidebar: React.FC = () => {
                       justifyContent: "space-between",
                       alignItems: "center",
                     }}
-                    onMouseEnter={handleHover}
-                    onMouseLeave={handleLeave}
+                    onMouseEnter={(e) => handleHover(e, isActive("events"))}
+                    onMouseLeave={(e) => handleLeave(e, isActive("events"))}
                     onClick={() => toggleSubDropdown("events")}
                   >
                     <span style={{ display: "flex", alignItems: "center" }}>
@@ -192,8 +195,8 @@ const Sidebar: React.FC = () => {
                       justifyContent: "space-between",
                       alignItems: "center",
                     }}
-                    onMouseEnter={handleHover}
-                    onMouseLeave={handleLeave}
+                    onMouseEnter={(e) => handleHover(e, isActive("investors"))}
+                    onMouseLeave={(e) => handleLeave(e, isActive("investors"))}
                     onClick={() => toggleSubDropdown("investors")}
                   >
                     <span style={{ display: "flex", alignItems: "center" }}>
@@ -223,6 +226,8 @@ const Sidebar: React.FC = () => {
                       justifyContent: "space-between", 
                       alignItems: "center" 
                     }}
+                    onMouseEnter={(e) => handleHover(e, isActive("folders"))}
+                    onMouseLeave={(e) => handleLeave(e, isActive("folders"))}
                   >
                     <span style={{ display: "flex", alignItems: "center" }}>
                       <FiFolderPlus size={16} style={{ marginRight: 8 }} />
@@ -240,9 +245,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.USERS}
                 className={`nav-link ${isActive(APP_ROUTES.USERS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.USERS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.USERS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.USERS))}
               >
                 <FiUsers  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Users
@@ -254,9 +262,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.JOBS}
                 className={`nav-link ${isActive(APP_ROUTES.JOBS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.JOBS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.JOBS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.JOBS))}
               >
                 <FiBriefcase  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Jobs
@@ -268,9 +279,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.EVENTS}
                 className={`nav-link ${isActive(APP_ROUTES.EVENTS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.EVENTS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.EVENTS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.EVENTS))}
               >
                 <FiAperture  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Events
@@ -282,9 +296,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.CARD_ACTIVATION_REQUESTS}
                 className={`nav-link ${isActive(APP_ROUTES.CARD_ACTIVATION_REQUESTS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.CARD_ACTIVATION_REQUESTS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.CARD_ACTIVATION_REQUESTS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.CARD_ACTIVATION_REQUESTS))}
               >
                 <FiCreditCard  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Card Activation Requests
@@ -296,9 +313,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.SERVICE_PROVIDERS}
                 className={`nav-link ${isActive(APP_ROUTES.SERVICE_PROVIDERS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.SERVICE_PROVIDERS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.SERVICE_PROVIDERS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.SERVICE_PROVIDERS))}
               >
                 <FiStar  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Service Providers
@@ -310,9 +330,12 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.INVESTORS}
                 className={`nav-link ${isActive(APP_ROUTES.INVESTORS) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.INVESTORS) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.INVESTORS))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.INVESTORS))}
               >
                 <FiBarChart2  size={16} style={{ marginRight: 8, marginBottom: 2 }} />
                 Investors
@@ -324,12 +347,15 @@ const Sidebar: React.FC = () => {
               <Link
                 to={APP_ROUTES.MEETINGS_SCHEDULES}
                 className={`nav-link ${isActive(APP_ROUTES.MEETINGS_SCHEDULES) ? "active" : ""}`}
-                style={STYLES.nav_item}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleLeave}
+                style={{
+                  ...STYLES.nav_item,
+                  color: isActive(APP_ROUTES.MEETINGS_SCHEDULES) ? COLORS.teal : COLORS.darkGray,
+                }}
+                onMouseEnter={(e) => handleHover(e, isActive(APP_ROUTES.MEETINGS_SCHEDULES))}
+                onMouseLeave={(e) => handleLeave(e, isActive(APP_ROUTES.MEETINGS_SCHEDULES))}
               >
                 <FiHeadphones size={16} style={{ marginRight: 8, marginBottom: 2 }} />
-                Meetings Schedules
+                Meeting Schedules
               </Link>
             </li>
 

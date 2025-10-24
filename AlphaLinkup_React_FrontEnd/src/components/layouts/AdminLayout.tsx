@@ -71,7 +71,8 @@ return (
   <div
     className="content-page page-padding-1"
     style={{
-      marginTop: "130px",
+      marginTop: "140px",
+      marginBottom: "40px",
       flex: 1,
       overflowY: "auto",
       height: "calc(100vh - 120px)",

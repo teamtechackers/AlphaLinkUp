@@ -713,7 +713,7 @@ const InvestorsList: React.FC = () => {
 
                   {/* Buttons */}
                   <div className="col-12 mt-3 d-flex justify-content-between">
-                    <button type="submit" className="btn btn-primary">{editing ? "Update" : "Save"}</button>
+                    <button type="submit" className="btn"  style={{ backgroundColor: COLORS.purple, color: COLORS.white }}>{editing ? "Update" : "Save"}</button>
                     {editing && <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>}
                   </div>
                 </div>

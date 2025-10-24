@@ -1,5 +1,5 @@
 export const MEETINGS_STRINGS = {
-  TITLE: "Meetings Schedules",
+  TITLE: "Meeting Schedules",
   TABLE: {
     TABLE_TITLE: "Meetings List",
     HEADER_MEETING_ID: "Meeting ID",

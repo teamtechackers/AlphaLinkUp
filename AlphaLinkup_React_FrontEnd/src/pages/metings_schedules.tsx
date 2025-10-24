@@ -149,7 +149,6 @@ const MeetingsSchedulesPage: React.FC = () => {
     if (!time) return "";
     const trimmed = time.trim();
 
-    // Already AM/PM
     const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (ampmMatch) {
       const hours = Math.max(1, Math.min(12, parseInt(ampmMatch[1], 10)));
@@ -158,7 +157,6 @@ const MeetingsSchedulesPage: React.FC = () => {
       return `${hours}:${minutes} ${ampm}`;
     }
 
-    // 24h HH:MM -> AM/PM
     const hhmmMatch = trimmed.match(/^(\d{1,2}):(\d{2})$/);
     if (hhmmMatch) {
       let hours24 = parseInt(hhmmMatch[1], 10);
@@ -169,7 +167,6 @@ const MeetingsSchedulesPage: React.FC = () => {
       return `${hours12}:${minutes} ${ampm}`;
     }
 
-    // Fallback: return as-is
     return trimmed;
   };
 
@@ -179,6 +176,21 @@ const MeetingsSchedulesPage: React.FC = () => {
     if (!selectedMeeting) return;
     const ampm = normalizeToAmPm(e.target.value);
     setSelectedMeeting(prev => (prev ? { ...prev, meeting_time: ampm } : prev));
+  };
+
+  const to24Hour = (time12h: string): string => {
+    if (!time12h) return "";
+    const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return time12h;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const ampm = match[3].toUpperCase();
+
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
   };
 
   const columns = useMemo(
@@ -274,13 +286,13 @@ const MeetingsSchedulesPage: React.FC = () => {
         </div>
 
         <div className="col-lg-4">
-          <div
-            className="card p-4 shadow-sm"
-            style={{ borderRadius: "12px", backgroundColor: COLORS.white }}
-          >
-            <h5 className="mb-4">Edit Meeting</h5>
+          <div className="card shadow-sm" style={{ backgroundColor: COLORS.white }} >
 
-            <form onSubmit={handleSubmit}>
+            <div className="card-header" style={{ backgroundColor: COLORS.lightGray }}>
+              <h5 className="mb-0">Edit Meeting</h5>
+            </div>
+            <div className="card-body"> 
+              <form onSubmit={handleSubmit}>
               {/* Requestor Name */}
               <div className="mb-3">
                 <label className="form-label fw-semibold">
@@ -349,7 +361,7 @@ const MeetingsSchedulesPage: React.FC = () => {
                   className="form-control"
                   name="meeting_time"
                   placeholder="e.g., 9:00 AM"
-                  value={selectedMeeting?.meeting_time || ""}
+                  value={to24Hour(selectedMeeting?.meeting_time || "")}
                   onChange={handleTimeChange}
                 />
               </div>
@@ -399,13 +411,15 @@ const MeetingsSchedulesPage: React.FC = () => {
                 </button>
                 <button 
                   type="submit" 
-                  className="btn btn-primary"
+                  className="btn"  style={{ backgroundColor: COLORS.purple, color: COLORS.white }}
                   disabled={!selectedMeeting}
                 >
                   Save
                 </button>
               </div>
             </form>
+            </div>
+          
           </div>
         </div>
       </div>
